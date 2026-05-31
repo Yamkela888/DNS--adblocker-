@@ -1,5 +1,13 @@
-version: "3"
 services:
+
+  unbound:
+    container_name: unbound
+    image: klutchell/unbound:latest
+    networks:
+      dns-net:
+        ipv4_address: 10.0.0.2
+    restart: unless-stopped
+
   pihole:
     container_name: pihole
     image: pihole/pihole:latest
@@ -9,9 +17,22 @@ services:
       - "8080:80/tcp"
     environment:
       TZ: 'Africa/Johannesburg'
-      WEBPASSWORD: 'your_password_here'
+      WEBPASSWORD: '1081T'
       FTLCONF_dns_listeningMode: 'all'
+      FTLCONF_dns_upstreams: '10.0.0.2#53'
     volumes:
       - './etc-pihole:/etc/pihole'
       - './etc-dnsmasq.d:/etc/dnsmasq.d'
+    networks:
+      dns-net:
+        ipv4_address: 10.0.0.3
+    depends_on:
+      - unbound
     restart: unless-stopped
+
+networks:
+  dns-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.0/24
